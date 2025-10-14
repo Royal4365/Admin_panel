@@ -105,7 +105,7 @@ export default function ProfilePage() {
             Restaurant Profile
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Manage your restaurant's online presence
+            Manage your restaurant&apos;s online presence
           </p>
         </div>
         <button
@@ -319,7 +319,7 @@ export default function ProfilePage() {
                 </label>
               ) : (
                 <p className="text-sm text-gray-400 dark:text-gray-500">
-                  Click "Edit Profile" to upload
+                  Click &quot;Edit Profile&quot; to upload
                 </p>
               )}
             </div>
@@ -713,13 +713,15 @@ export default function ProfilePage() {
 
         {isEditing && thumbnails.length === 0 && (
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 text-center">
-            Click "Add Photos" to upload restaurant images (max 6 photos)
+            Click &quot;Add Photos&quot; to upload restaurant images (max 6
+            photos)
           </p>
         )}
 
         {!isEditing && thumbnails.length === 0 && (
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 text-center">
-            No photos uploaded yet. Click "Edit Profile" to add images.
+            No photos uploaded yet. Click &quot;Edit Profile&quot; to add
+            images.
           </p>
         )}
 

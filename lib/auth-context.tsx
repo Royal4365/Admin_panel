@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const session = localStorage.getItem("admin_session");
     if (session) {
       try {
-        const { email, restaurantId, restaurantName } = JSON.parse(session);
+        const { restaurantId, restaurantName } = JSON.parse(session);
         setIsAuthenticated(true);
         setRestaurantId(restaurantId);
         setRestaurantName(restaurantName);

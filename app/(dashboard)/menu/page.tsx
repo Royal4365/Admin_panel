@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Plus, Edit, Trash2, Check, X, Upload, Leaf } from "lucide-react";
 import { MenuItem, MenuType } from "@/lib/types";
 
@@ -22,14 +22,6 @@ export default function MenuPage() {
     image_url: "",
   });
 
-  useEffect(() => {
-    fetchMenuItems();
-  }, []);
-
-  useEffect(() => {
-    filterMenuItems();
-  }, [menuItems, menuFilter]);
-
   const fetchMenuItems = async () => {
     try {
       const response = await fetch("/api/menu");
@@ -44,13 +36,21 @@ export default function MenuPage() {
     }
   };
 
-  const filterMenuItems = () => {
+  const filterMenuItems = useCallback(() => {
     if (menuFilter === "All") {
       setFilteredItems(menuItems);
     } else {
       setFilteredItems(menuItems.filter((item) => item.type === menuFilter));
     }
-  };
+  }, [menuItems, menuFilter]);
+
+  useEffect(() => {
+    fetchMenuItems();
+  }, []);
+
+  useEffect(() => {
+    filterMenuItems();
+  }, [filterMenuItems]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -405,7 +405,7 @@ export default function MenuPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Menu Items{" "}
                   <span className="text-gray-500 text-xs">
-                    (What's included?)
+                    (What&apos;s included?)
                   </span>
                 </label>
                 <textarea
@@ -454,7 +454,7 @@ export default function MenuPage() {
           <div className="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
             {menuFilter !== "All"
               ? `No ${menuFilter} items found.`
-              : 'No menu items found. Click "Add New Thali / Item" to create your first item.'}
+              : "No menu items found. Click &quot;Add New Thali / Item&quot; to create your first item."}
           </div>
         ) : (
           filteredItems.map((item) => (

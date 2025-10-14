@@ -123,7 +123,9 @@ export default function PaymentsPage() {
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium opacity-90">Today's Payments</p>
+              <p className="text-sm font-medium opacity-90">
+                Today&apos;s Payments
+              </p>
               <p className="text-3xl font-bold mt-2">
                 ₹{todayRevenue.toFixed(2)}
               </p>

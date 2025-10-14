@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, ShoppingCart, DollarSign, TrendingUp } from "lucide-react";
+import { Users, ShoppingCart, DollarSign } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import { FilterPeriod } from "@/lib/types";
 
@@ -48,7 +48,7 @@ export default function DashboardPage() {
             Dashboard
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
-            Welcome back! Here's your restaurant overview.
+            Welcome back! Here&apos;s your restaurant overview.
           </p>
         </div>
 

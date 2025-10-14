@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Trash2, Mail, Phone, MapPin, Search } from "lucide-react";
 import { Customer, CustomerStatus } from "@/lib/types";
 
@@ -10,14 +10,6 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<CustomerStatus>("All");
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  useEffect(() => {
-    filterCustomers();
-  }, [customers, statusFilter, searchQuery]);
 
   const fetchCustomers = async () => {
     try {
@@ -33,7 +25,7 @@ export default function CustomersPage() {
     }
   };
 
-  const filterCustomers = () => {
+  const filterCustomers = useCallback(() => {
     let filtered = [...customers];
 
     // Filter by status
@@ -52,7 +44,15 @@ export default function CustomersPage() {
     }
 
     setFilteredCustomers(filtered);
-  };
+  }, [customers, statusFilter, searchQuery]);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  useEffect(() => {
+    filterCustomers();
+  }, [filterCustomers]);
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this customer?")) return;

@@ -39,11 +39,16 @@ export async function POST(request: NextRequest) {
     `;
 
     return NextResponse.json(result[0], { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating customer:", error);
 
     // Check for duplicate email
-    if (error?.code === "23505") {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error as { code: string }).code === "23505"
+    ) {
       return NextResponse.json(
         { error: "Email already exists" },
         { status: 409 }
