@@ -46,8 +46,11 @@ export default function ImageUpload({
     setUploading(true);
 
     try {
-      // Get upload signature from API
-      const signatureResponse = await fetch("/api/cloudinary/signature");
+      // Get upload signature from API with folder parameter
+      const signatureResponse = await fetch(`/api/cloudinary/signature?folder=${encodeURIComponent(folder)}`);
+      if (!signatureResponse.ok) {
+        throw new Error("Failed to get upload signature");
+      }
       const signatureData = await signatureResponse.json();
 
       // Create form data
@@ -56,7 +59,7 @@ export default function ImageUpload({
       formData.append("api_key", signatureData.apiKey);
       formData.append("timestamp", signatureData.timestamp.toString());
       formData.append("signature", signatureData.signature);
-      formData.append("folder", folder);
+      formData.append("folder", signatureData.folder);
 
       // Upload to Cloudinary
       const uploadResponse = await fetch(
@@ -68,14 +71,20 @@ export default function ImageUpload({
       );
 
       if (!uploadResponse.ok) {
-        throw new Error("Upload failed");
+        const errorData = await uploadResponse.json();
+        console.error("Cloudinary upload error:", errorData);
+        throw new Error(errorData.error?.message || "Upload failed");
       }
 
       const data = await uploadResponse.json();
       onChange(data.secure_url);
     } catch (err) {
       console.error("Upload error:", err);
-      setError("Failed to upload image. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to upload image. Please try again."
+      );
     } finally {
       setUploading(false);
       // Reset file input

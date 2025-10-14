@@ -10,7 +10,9 @@ cloudinary.config({
 export default cloudinary;
 
 // Helper function to generate upload signature
-export async function getCloudinarySignature() {
+export async function getCloudinarySignature(
+  folder: string = "restaurant-admin"
+) {
   const timestamp = Math.round(new Date().getTime() / 1000);
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
@@ -21,7 +23,7 @@ export async function getCloudinarySignature() {
   const signature = cloudinary.utils.api_sign_request(
     {
       timestamp,
-      folder: "restaurant-admin",
+      folder,
     },
     apiSecret
   );
@@ -29,6 +31,7 @@ export async function getCloudinarySignature() {
   return {
     signature,
     timestamp,
+    folder,
     cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
     apiKey: process.env.CLOUDINARY_API_KEY,
   };

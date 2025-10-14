@@ -1,9 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCloudinarySignature } from "@/lib/cloudinary";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const signatureData = await getCloudinarySignature();
+    const { searchParams } = new URL(request.url);
+    const folder = searchParams.get("folder") || "restaurant-admin";
+
+    const signatureData = await getCloudinarySignature(folder);
     return NextResponse.json(signatureData);
   } catch (error) {
     console.error("Error generating Cloudinary signature:", error);
