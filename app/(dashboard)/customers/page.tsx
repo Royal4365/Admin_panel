@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Trash2, Mail, Phone, MapPin, Search } from "lucide-react";
 import { Customer, CustomerStatus } from "@/lib/types";
+import { authenticatedFetch } from "@/lib/client-auth";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -13,7 +14,7 @@ export default function CustomersPage() {
 
   const fetchCustomers = async () => {
     try {
-      const response = await fetch("/api/customers");
+      const response = await authenticatedFetch("/api/customers");
       if (response.ok) {
         const data = await response.json();
         setCustomers(data);
@@ -54,11 +55,11 @@ export default function CustomersPage() {
     filterCustomers();
   }, [filterCustomers]);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this customer?")) return;
 
     try {
-      const response = await fetch(`/api/customers?id=${id}`, {
+      const response = await authenticatedFetch(`/api/customers?id=${id}`, {
         method: "DELETE",
       });
 

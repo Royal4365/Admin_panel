@@ -4,6 +4,7 @@ A comprehensive, modern restaurant management system built with Next.js, TypeScr
 
 ## Features
 
+- 🔐 **Authentication**: Secure login/signup with password hashing
 - 📊 **Dashboard**: Overview of customers, orders, and revenue with visual stats
 - 👥 **Customer Management**: Add, view, and delete customers
 - 🍽️ **Menu Management**: Full CRUD operations for menu items (name, price, category, availability)
@@ -19,6 +20,7 @@ A comprehensive, modern restaurant management system built with Next.js, TypeScr
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Database**: NeonDB (PostgreSQL)
+- **Authentication**: bcryptjs for password hashing
 - **Icons**: Lucide React
 
 ## Project Structure
@@ -26,7 +28,9 @@ A comprehensive, modern restaurant management system built with Next.js, TypeScr
 ```
 admin_panel/
 ├── app/
+│   ├── (auth)/          # Authentication pages (login, signup)
 │   ├── api/              # API routes
+│   │   ├── auth/         # Authentication API routes
 │   │   ├── customers/    # Customer CRUD endpoints
 │   │   ├── menu/         # Menu CRUD endpoints
 │   │   └── init-db/      # Database initialization
@@ -36,7 +40,7 @@ admin_panel/
 │   ├── payments/         # Payments page
 │   ├── profile/          # Restaurant profile page
 │   ├── layout.tsx        # Root layout with Navbar & Sidebar
-│   └── page.tsx          # Home page (redirects to dashboard)
+│   └── page.tsx          # Home page (redirects to login/dashboard)
 ├── components/
 │   ├── Navbar.tsx        # Top navigation bar
 │   ├── Sidebar.tsx       # Left sidebar menu
@@ -45,7 +49,9 @@ admin_panel/
 ├── lib/
 │   ├── db.ts            # NeonDB connection & schema
 │   ├── types.ts         # TypeScript interfaces
-│   └── theme-context.tsx # Dark mode context
+│   ├── theme-context.tsx # Dark mode context
+│   ├── auth.ts          # Server-side auth utilities
+│   └── client-auth.ts   # Client-side auth utilities
 └── public/              # Static assets
 ```
 
@@ -87,9 +93,21 @@ admin_panel/
    npm run dev
    ```
 
-6. **Open the app**:
+6. **Access the application**:
    - Navigate to [http://localhost:3000](http://localhost:3000)
-   - You'll be automatically redirected to the dashboard
+   - You'll be redirected to the login page
+   - New users can sign up for an account
+
+## Database Schema
+
+The application uses the following tables:
+
+- **admins**: Store admin credentials and restaurant associations
+- **restaurants**: Store restaurant information
+- **customers**: Store customer information (id, name, email, phone)
+- **menu_items**: Store menu items (id, name, price, category, availability, description)
+- **orders**: Track customer orders (id, customer_id, total_amount, status)
+- **payments**: Track payments (id, order_id, amount, payment_method, status)
 
 ## Database Schema
 
@@ -101,6 +119,11 @@ The application uses the following tables:
 - **payments**: Track payments (id, order_id, amount, payment_method, status)
 
 ## API Endpoints
+
+### Authentication
+
+- `POST /api/auth/signup` - Register new admin and create restaurant
+- `POST /api/auth/login` - Authenticate admin credentials
 
 ### Customers
 
@@ -114,6 +137,11 @@ The application uses the following tables:
 - `POST /api/menu` - Create a new menu item
 - `PUT /api/menu?id={id}` - Update a menu item
 - `DELETE /api/menu?id={id}` - Delete a menu item
+
+### Restaurant Profile
+
+- `GET /api/restaurant` - Get restaurant profile
+- `PUT /api/restaurant` - Update restaurant profile
 
 ### Database
 
@@ -145,12 +173,13 @@ The application uses the following tables:
 - Toggle item availability
 - Price management
 
-### Dark Mode
+### Authentication
 
-- System preference detection
-- Manual toggle in navbar
-- Persistent across sessions (localStorage)
-- Smooth transitions
+- **Login Page**: Secure authentication with password verification
+- **Signup Page**: Admin registration with restaurant creation
+- **Password Security**: Passwords hashed with bcryptjs
+- **Session Management**: Client-side session storage with automatic logout
+- **Protected Routes**: Dashboard and API routes protected from unauthorized access
 
 ## Customization
 
@@ -201,6 +230,8 @@ npm run start
 - Inventory management
 - Multi-restaurant support
 - Image uploads for menu items
+- Password reset functionality
+- Session expiration and refresh tokens
 
 ## License
 

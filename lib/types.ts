@@ -1,5 +1,5 @@
 export interface Customer {
-  id: number;
+  id: string; // UUID
   name: string;
   email: string;
   phone?: string;
@@ -9,31 +9,32 @@ export interface Customer {
 }
 
 export interface MenuItem {
-  id: number;
+  id: string; // UUID
   name: string;
   price: number;
   category: string;
   isAvailable: boolean;
+  hasDessert?: boolean; // Indicates if dessert is included
   discount?: number;
   menu_items?: string; // Comma-separated list of items for Thali
   type: "Veg" | "Non-Veg";
-  image_url?: string;
+  image_url?: string; // More readable name for frontend
   created_at: Date;
   updated_at: Date;
 }
 
 export interface Order {
-  id: number;
-  customer_id: number;
+  id: string; // UUID
+  customer_id: string; // UUID
   total_amount: number;
   status: string;
   created_at: Date;
 }
 
 export interface Payment {
-  id: number;
-  order_id: number;
-  customer_id: number;
+  id: string; // UUID
+  order_id: string; // UUID
+  customer_id: string; // UUID
   customer_name: string;
   customer_phone: string;
   amount: number;
@@ -58,7 +59,7 @@ export type PaymentStatus = "All" | "Paid" | "Pending";
 export type MenuType = "All" | "Veg" | "Non-Veg";
 
 export interface RestaurantProfile {
-  id: number;
+  id: string; // UUID
   name: string;
   logo_url?: string;
   banner_url?: string;
@@ -68,15 +69,15 @@ export interface RestaurantProfile {
 }
 
 export interface Admin {
-  id: number;
+  id: string; // UUID
   email: string;
   password: string;
-  restaurant_id: number;
+  restaurant_id: string; // UUID
   created_at: Date;
 }
 
 export interface Restaurant {
-  id: number;
+  id: string; // UUID
   name: string;
   owner_name: string;
   email: string;

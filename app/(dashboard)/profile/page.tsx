@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Store,
   MapPin,
@@ -14,36 +14,133 @@ import {
   MapPinned,
 } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import { authenticatedFetch } from "@/lib/client-auth";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [formData, setFormData] = useState({
-    restaurantName: "The Golden Spoon",
-    tagline: "Fine Dining Experience",
-    address: "123 Main Street, Downtown",
-    city: "New York",
-    state: "NY",
-    zip: "10001",
-    phone: "+1 (555) 123-4567",
-    email: "info@goldenspoon.com",
-    website: "www.goldenspoon.com",
-    openingHours: "10:00 AM - 10:00 PM",
-    deliveryTime: "30-45 mins",
-    deliveryRadius: "5 km",
+    restaurantName: "",
+    ownerName: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    phone: "",
+    email: "",
+    website: "",
+    openingHours: "",
+    deliveryTime: "",
+    deliveryRadius: "",
     category: "Mixed",
-    description:
-      "Experience the finest dining with our authentic Italian cuisine and exceptional service. We pride ourselves on using fresh, locally-sourced ingredients to create unforgettable culinary experiences.",
     logo_url: "",
     banner_url: "",
-    restaurant_picture_url: "", // New: Main restaurant picture for cards
+    restaurant_picture_url: "",
+    rating: 0,
   });
 
-  const handleSave = () => {
-    // In a real app, this would save to database via API
-    setIsEditing(false);
-    alert("Restaurant profile updated successfully!");
+  // Fetch restaurant data on mount
+  useEffect(() => {
+    fetchRestaurantData();
+  }, []);
+
+  const fetchRestaurantData = async () => {
+    try {
+      setLoading(true);
+      const response = await authenticatedFetch("/api/restaurant");
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData({
+          restaurantName: data.name || "",
+          ownerName: data.owner_name || "",
+          address: data.address || "",
+          city: data.city || "",
+          state: data.state || "",
+          zip: data.zip || "",
+          phone: data.phone || "",
+          email: data.email || "",
+          website: data.website || "",
+          openingHours: data.opening_hours || data.hours || "",
+          deliveryTime: data.delivery_time || "",
+          deliveryRadius: data.delivery_radius || "",
+          category: data.cuisine_type || "Mixed",
+          logo_url: data.logo_url || "",
+          banner_url: data.banner_url || "",
+          restaurant_picture_url:
+            data.restaurant_picture_url || data.image_url || "",
+          rating: data.rating || 0,
+        });
+      } else if (response.status === 404) {
+        console.log("Restaurant not found in database");
+      }
+    } catch (error) {
+      console.error("Error fetching restaurant data:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+
+      const response = await authenticatedFetch("/api/restaurant", {
+        method: "PUT",
+        body: JSON.stringify({
+          name: formData.restaurantName,
+          owner_name: formData.ownerName,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          phone: formData.phone,
+          email: formData.email,
+          website: formData.website,
+          opening_hours: formData.openingHours,
+          delivery_time: formData.deliveryTime,
+          delivery_radius: formData.deliveryRadius,
+          cuisine_type: formData.category,
+          logo_url: formData.logo_url,
+          banner_url: formData.banner_url,
+          restaurant_picture_url: formData.restaurant_picture_url,
+          is_active: true,
+        }),
+      });
+
+      if (response.ok) {
+        setIsEditing(false);
+        alert("Restaurant profile updated successfully!");
+        // Refresh data
+        await fetchRestaurantData();
+      } else {
+        const error = await response.json();
+        console.error("Update error response:", error);
+        alert(
+          `Failed to update profile: ${
+            error.details || error.error || "Unknown error"
+          }`
+        );
+      }
+    } catch (error) {
+      console.error("Error saving restaurant data:", error);
+      alert("Failed to save restaurant profile. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-xl text-gray-600 dark:text-gray-400">
+          Loading restaurant profile...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -58,9 +155,15 @@ export default function ProfilePage() {
         </div>
         <button
           onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          disabled={saving}
+          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isEditing ? (
+          {saving ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Saving...</span>
+            </>
+          ) : isEditing ? (
             <>
               <Save className="w-5 h-5" />
               <span>Save Changes</span>
@@ -115,37 +218,54 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Restaurant Name & Tagline */}
-      <div className="pt-8 px-8">
-        {isEditing ? (
-          <div className="space-y-3">
-            <input
-              type="text"
-              value={formData.restaurantName}
-              onChange={(e) =>
-                setFormData({ ...formData, restaurantName: e.target.value })
-              }
-              className="text-3xl font-bold bg-gray-100 dark:bg-gray-700 rounded px-3 py-2 w-full text-gray-800 dark:text-white"
-            />
-            <input
-              type="text"
-              value={formData.tagline}
-              onChange={(e) =>
-                setFormData({ ...formData, tagline: e.target.value })
-              }
-              className="text-xl bg-gray-100 dark:bg-gray-700 rounded px-3 py-2 w-full text-gray-600 dark:text-gray-300"
-            />
+      {/* Restaurant Name & Owner */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+        <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
+          Restaurant Information
+        </h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+              Restaurant Name
+            </label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={formData.restaurantName}
+                onChange={(e) =>
+                  setFormData({ ...formData, restaurantName: e.target.value })
+                }
+                className="text-2xl font-bold bg-gray-100 dark:bg-gray-700 rounded px-3 py-2 w-full text-gray-800 dark:text-white"
+                placeholder="Enter restaurant name"
+              />
+            ) : (
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                {formData.restaurantName}
+              </h2>
+            )}
           </div>
-        ) : (
-          <>
-            <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-              {formData.restaurantName}
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
-              {formData.tagline}
-            </p>
-          </>
-        )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+              Owner Name
+            </label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={formData.ownerName}
+                onChange={(e) =>
+                  setFormData({ ...formData, ownerName: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                placeholder="Enter owner name"
+              />
+            ) : (
+              <p className="text-lg text-gray-800 dark:text-white">
+                {formData.ownerName || "Not specified"}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Restaurant Picture (Main Display Image) */}
@@ -456,27 +576,6 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Description */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
-          About Our Restaurant
-        </h3>
-        {isEditing ? (
-          <textarea
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            rows={6}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-          />
-        ) : (
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-            {formData.description}
-          </p>
-        )}
       </div>
 
       {/* Restaurant Photo Gallery */}

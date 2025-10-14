@@ -47,7 +47,9 @@ export default function ImageUpload({
 
     try {
       // Get upload signature from API with folder parameter
-      const signatureResponse = await fetch(`/api/cloudinary/signature?folder=${encodeURIComponent(folder)}`);
+      const signatureResponse = await fetch(
+        `/api/cloudinary/signature?folder=${encodeURIComponent(folder)}`
+      );
       if (!signatureResponse.ok) {
         throw new Error("Failed to get upload signature");
       }

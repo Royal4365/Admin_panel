@@ -4,13 +4,14 @@ import { useEffect, useState, useCallback } from "react";
 import { Plus, Edit, Trash2, Check, X, Leaf, ImageIcon } from "lucide-react";
 import { MenuItem, MenuType } from "@/lib/types";
 import ImageUpload from "@/components/ImageUpload";
+import { authenticatedFetch } from "@/lib/client-auth";
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [menuFilter, setMenuFilter] = useState<MenuType>("All");
   const [formData, setFormData] = useState({
     name: "",
@@ -18,6 +19,7 @@ export default function MenuPage() {
     category: "",
     type: "Veg" as "Veg" | "Non-Veg",
     isAvailable: true,
+    hasDessert: false,
     discount: "",
     menu_items: "",
     image_url: "",
@@ -25,7 +27,7 @@ export default function MenuPage() {
 
   const fetchMenuItems = async () => {
     try {
-      const response = await fetch("/api/menu");
+      const response = await authenticatedFetch("/api/menu");
       if (response.ok) {
         const data = await response.json();
         setMenuItems(data);
@@ -61,9 +63,8 @@ export default function MenuPage() {
       const url = editingId ? `/api/menu?id=${editingId}` : "/api/menu";
       const method = editingId ? "PUT" : "POST";
 
-      const response = await fetch(url, {
+      const response = await authenticatedFetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
           price: parseFloat(formData.price),
@@ -95,18 +96,19 @@ export default function MenuPage() {
       category: item.category,
       type: item.type,
       isAvailable: item.isAvailable,
+      hasDessert: item.hasDessert || false,
       discount: item.discount?.toString() || "",
       menu_items: item.menu_items || "",
-      image_url: item.image_url || "",
+      image_url: (item as any)["menu-image"] || "",
     });
     setShowAddForm(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this menu item?")) return;
 
     try {
-      const response = await fetch(`/api/menu?id=${id}`, {
+      const response = await authenticatedFetch(`/api/menu?id=${id}`, {
         method: "DELETE",
       });
 
@@ -128,6 +130,7 @@ export default function MenuPage() {
       category: "",
       type: "Veg",
       isAvailable: true,
+      hasDessert: false,
       discount: "",
       menu_items: "",
       image_url: "",
@@ -209,219 +212,253 @@ export default function MenuPage() {
 
       {/* Add/Edit Form Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-slate-900/20 dark:bg-slate-950/30 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-lg p-6 w-full max-w-2xl my-8 shadow-2xl border border-slate-200/50 dark:border-slate-700/50">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-                {editingId ? "Edit Menu Item" : "Add New Menu Item"}
-              </h2>
-              <button
-                onClick={resetForm}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl shadow-xl border border-gray-200 dark:border-gray-700 my-8">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                  {editingId ? "Edit Menu Item" : "Add New Menu Item"}
+                </h2>
+                <button
+                  onClick={resetForm}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Price *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={formData.price}
-                    onChange={(e) =>
-                      setFormData({ ...formData, price: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Price *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={formData.price}
+                      onChange={(e) =>
+                        setFormData({ ...formData, price: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Category *
-                  </label>
-                  <select
-                    required
-                    value={formData.category}
-                    onChange={(e) =>
-                      setFormData({ ...formData, category: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="">Select a category</option>
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Category *
+                    </label>
+                    <select
+                      required
+                      value={formData.category}
+                      onChange={(e) =>
+                        setFormData({ ...formData, category: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="">Select a category</option>
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Veg / Non-Veg *
-                  </label>
-                  <div className="flex gap-4 mt-2">
-                    <label className="flex items-center cursor-pointer">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Veg / Non-Veg *
+                    </label>
+                    <div className="flex gap-4 mt-2">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="type"
+                          value="Veg"
+                          checked={formData.type === "Veg"}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              type: e.target.value as "Veg" | "Non-Veg",
+                            })
+                          }
+                          className="mr-2"
+                        />
+                        <span className="flex items-center px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
+                          <Leaf className="w-4 h-4 mr-1" />
+                          Veg
+                        </span>
+                      </label>
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="type"
+                          value="Non-Veg"
+                          checked={formData.type === "Non-Veg"}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              type: e.target.value as "Veg" | "Non-Veg",
+                            })
+                          }
+                          className="mr-2"
+                        />
+                        <span className="flex items-center px-3 py-1 rounded-full bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300">
+                          <div className="w-4 h-4 mr-1 border-2 border-red-600 rounded-sm"></div>
+                          Non-Veg
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Discount (%){" "}
+                      <span className="text-gray-500 text-xs">(Optional)</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value={formData.discount}
+                      onChange={(e) =>
+                        setFormData({ ...formData, discount: e.target.value })
+                      }
+                      placeholder="e.g., 10"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Availability
+                    </label>
+                    <select
+                      value={formData.isAvailable ? "true" : "false"}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          isAvailable: e.target.value === "true",
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="true">Available</option>
+                      <option value="false">Unavailable</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Includes Dessert
+                    </label>
+                    <div className="flex items-center space-x-2 mt-2">
                       <input
-                        type="radio"
-                        name="type"
-                        value="Veg"
-                        checked={formData.type === "Veg"}
+                        type="checkbox"
+                        id="hasDessert"
+                        checked={formData.hasDessert}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            type: e.target.value as "Veg" | "Non-Veg",
+                            hasDessert: e.target.checked,
                           })
                         }
-                        className="mr-2"
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
-                      <span className="flex items-center px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
-                        <Leaf className="w-4 h-4 mr-1" />
-                        Veg
-                      </span>
+                      <label
+                        htmlFor="hasDessert"
+                        className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                      >
+                        This item includes dessert
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Check this for Thalis or combo meals that come with
+                      dessert
+                    </p>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Menu Item Image
                     </label>
-                    <label className="flex items-center cursor-pointer">
-                      <input
-                        type="radio"
-                        name="type"
-                        value="Non-Veg"
-                        checked={formData.type === "Non-Veg"}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            type: e.target.value as "Veg" | "Non-Veg",
-                          })
-                        }
-                        className="mr-2"
-                      />
-                      <span className="flex items-center px-3 py-1 rounded-full bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300">
-                        <div className="w-4 h-4 mr-1 border-2 border-red-600 rounded-sm"></div>
-                        Non-Veg
-                      </span>
-                    </label>
+                    <ImageUpload
+                      value={formData.image_url}
+                      onChange={(url) =>
+                        setFormData({ ...formData, image_url: url })
+                      }
+                      onRemove={() =>
+                        setFormData({ ...formData, image_url: "" })
+                      }
+                      label="Upload Menu Item Photo"
+                      aspectRatio="square"
+                      folder="menu-items"
+                    />
                   </div>
                 </div>
 
+                {/* Menu Items - Always visible */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Discount (%){" "}
-                    <span className="text-gray-500 text-xs">(Optional)</span>
+                    Menu Items{" "}
+                    <span className="text-gray-500 text-xs">
+                      (What&apos;s included?)
+                    </span>
                   </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    value={formData.discount}
+                  <textarea
+                    value={formData.menu_items}
                     onChange={(e) =>
-                      setFormData({ ...formData, discount: e.target.value })
+                      setFormData({ ...formData, menu_items: e.target.value })
                     }
-                    placeholder="e.g., 10"
+                    rows={3}
+                    placeholder="e.g., Dal, Rice, Roti, Vegetable, Salad, Sweet (comma-separated)"
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    List all items included, separated by commas. Great for
+                    Thalis or combo meals!
+                  </p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Availability
-                  </label>
-                  <select
-                    value={formData.isAvailable ? "true" : "false"}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        isAvailable: e.target.value === "true",
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
-                    <option value="true">Available</option>
-                    <option value="false">Unavailable</option>
-                  </select>
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {loading
+                      ? "Saving..."
+                      : editingId
+                      ? "Update Item"
+                      : "Add Item"}
+                  </button>
                 </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Menu Item Image
-                  </label>
-                  <ImageUpload
-                    value={formData.image_url}
-                    onChange={(url) =>
-                      setFormData({ ...formData, image_url: url })
-                    }
-                    onRemove={() => setFormData({ ...formData, image_url: "" })}
-                    label="Upload Menu Item Photo"
-                    aspectRatio="square"
-                    folder="menu-items"
-                  />
-                </div>
-              </div>
-
-              {/* Menu Items - Always visible */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Menu Items{" "}
-                  <span className="text-gray-500 text-xs">
-                    (What&apos;s included?)
-                  </span>
-                </label>
-                <textarea
-                  value={formData.menu_items}
-                  onChange={(e) =>
-                    setFormData({ ...formData, menu_items: e.target.value })
-                  }
-                  rows={3}
-                  placeholder="e.g., Dal, Rice, Roti, Vegetable, Salad, Sweet (comma-separated)"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  List all items included, separated by commas. Great for Thalis
-                  or combo meals!
-                </p>
-              </div>
-
-              <div className="flex space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {loading
-                    ? "Saving..."
-                    : editingId
-                    ? "Update Item"
-                    : "Add Item"}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       )}
@@ -503,10 +540,14 @@ export default function MenuPage() {
                     {item.discount && item.discount > 0 ? (
                       <>
                         <span className="text-sm line-through text-gray-400 dark:text-gray-500">
-                          ₹{item.price.toFixed(2)}
+                          ₹{Number(item.price).toFixed(2)}
                         </span>
                         <span className="text-xl font-bold text-blue-600 dark:text-blue-400 ml-1">
-                          ₹{(item.price * (1 - item.discount / 100)).toFixed(2)}
+                          ₹
+                          {(
+                            Number(item.price) *
+                            (1 - item.discount / 100)
+                          ).toFixed(2)}
                         </span>
                         <span className="block text-xs text-green-600 dark:text-green-400 font-semibold">
                           {item.discount}% OFF
@@ -514,7 +555,7 @@ export default function MenuPage() {
                       </>
                     ) : (
                       <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                        ₹{item.price.toFixed(2)}
+                        ₹{Number(item.price).toFixed(2)}
                       </span>
                     )}
                   </div>

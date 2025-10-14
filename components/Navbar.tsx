@@ -1,13 +1,31 @@
 "use client";
 
-import { Moon, Sun, UserPlus } from "lucide-react";
+import { Moon, Sun, UserPlus, LogOut, User } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import AddCustomerModal from "./AddCustomerModal";
+import { getAdminSession, clearAdminSession } from "@/lib/client-auth";
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [adminName, setAdminName] = useState("");
+  const [restaurantName, setRestaurantName] = useState("");
+
+  useEffect(() => {
+    const session = getAdminSession();
+    if (session) {
+      setAdminName(session.name || "Admin");
+      setRestaurantName(session.restaurantName || "Restaurant");
+    }
+  }, []);
+
+  const handleLogout = () => {
+    clearAdminSession();
+    router.push("/login");
+  };
 
   return (
     <>
@@ -15,8 +33,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-              Restaurant Admin
+              {restaurantName}
             </h1>
+            <span className="text-sm text-slate-500 dark:text-slate-400">
+              Admin Panel
+            </span>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -27,6 +48,16 @@ export default function Navbar() {
             >
               <UserPlus className="w-5 h-5" />
               <span className="font-medium">Add Customer</span>
+            </button>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 bg-red-600 dark:bg-red-500 hover:bg-red-700 dark:hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+              title="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="hidden md:inline font-medium">Logout</span>
             </button>
 
             {/* Theme Toggle */}

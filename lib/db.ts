@@ -44,7 +44,9 @@ export async function initDatabase() {
     await sql`
       CREATE TABLE IF NOT EXISTS admins (
         id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
+        phone VARCHAR(20) NOT NULL,
         password VARCHAR(255) NOT NULL,
         restaurant_id INTEGER REFERENCES restaurants(id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -73,11 +75,14 @@ export async function initDatabase() {
         name VARCHAR(255) NOT NULL,
         price DECIMAL(10, 2) NOT NULL,
         category VARCHAR(100) NOT NULL,
+        content TEXT,
+        rating DECIMAL(3, 2),
         is_available BOOLEAN DEFAULT true,
+        has_dessert BOOLEAN DEFAULT false,
         discount DECIMAL(5, 2),
         menu_items TEXT,
         type VARCHAR(20) DEFAULT 'Veg',
-        image_url TEXT,
+        "menu-image" TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )

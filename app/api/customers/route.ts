@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db";
+import { getRestaurantIdFromHeaders, validateRestaurantId } from "@/lib/auth";
 
 // GET - Fetch all customers
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const restaurantId = getRestaurantIdFromHeaders(request);
+    validateRestaurantId(restaurantId);
+
     const customers = await sql`
-      SELECT * FROM customers ORDER BY created_at DESC
+      SELECT * FROM customers WHERE restaurant_id = ${restaurantId} ORDER BY created_at DESC
     `;
     return NextResponse.json(customers);
   } catch (error) {
@@ -20,6 +24,9 @@ export async function GET() {
 // POST - Create a new customer
 export async function POST(request: NextRequest) {
   try {
+    const restaurantId = getRestaurantIdFromHeaders(request);
+    validateRestaurantId(restaurantId);
+
     const body = await request.json();
     const { name, email, phone, address, status } = body;
 
@@ -31,10 +38,10 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await sql`
-      INSERT INTO customers (name, email, phone, address, status)
-      VALUES (${name}, ${email}, ${phone || null}, ${address || null}, ${
-      status || "Active"
-    })
+      INSERT INTO customers (restaurant_id, name, email, phone, address, status)
+      VALUES (${restaurantId}, ${name}, ${email}, ${phone || null}, ${
+      address || null
+    }, ${status || "Active"})
       RETURNING *
     `;
 
@@ -65,6 +72,9 @@ export async function POST(request: NextRequest) {
 // DELETE - Delete a customer
 export async function DELETE(request: NextRequest) {
   try {
+    const restaurantId = getRestaurantIdFromHeaders(request);
+    validateRestaurantId(restaurantId);
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -76,7 +86,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await sql`
-      DELETE FROM customers WHERE id = ${id}
+      DELETE FROM customers WHERE id = ${id} AND restaurant_id = ${restaurantId}
     `;
 
     return NextResponse.json({ success: true });

@@ -16,7 +16,7 @@ export async function GET() {
 
     // Add sample menu items
     await sql`
-      INSERT INTO menu_items (name, price, category, description, availability, type, image_url) VALUES
+      INSERT INTO menu_items (name, price, category, description, availability, type, "menu-image") VALUES
       ('Margherita Pizza', 12.99, 'Pizza', 'Classic pizza with tomato sauce, mozzarella, and fresh basil', true, 'Veg', null),
       ('Pepperoni Pizza', 14.99, 'Pizza', 'Traditional pepperoni with mozzarella cheese', true, 'Non-Veg', null),
       ('Caesar Salad', 8.99, 'Salads', 'Fresh romaine lettuce with Caesar dressing and croutons', true, 'Veg', null),
