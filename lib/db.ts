@@ -3,17 +3,8 @@ import { neon } from "@neondatabase/serverless";
 // Get the database connection string from environment variable
 const getDatabaseUrl = () => {
   const url = process.env.DATABASE_URL;
-  if (!url) {
-    // Only throw error at runtime, not during build
-    if (
-      typeof window === "undefined" &&
-      process.env.NODE_ENV !== "production"
-    ) {
-      console.warn("DATABASE_URL environment variable is not set");
-    }
-    return "postgresql://placeholder:placeholder@localhost:5432/placeholder"; // Placeholder for build
-  }
-  return url;
+  // Return placeholder if DATABASE_URL is not set (for builds without DB)
+  return url || "postgresql://placeholder@localhost/placeholder";
 };
 
 // Create a SQL query function
