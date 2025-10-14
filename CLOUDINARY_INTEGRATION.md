@@ -53,16 +53,16 @@ That's it! 🎉 Images will now upload to Cloudinary!
 ### Option 1: Use the ImageUpload Component (Recommended)
 
 ```tsx
-import ImageUpload from '@/components/ImageUpload';
+import ImageUpload from "@/components/ImageUpload";
 
 function MyComponent() {
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState("");
 
   return (
     <ImageUpload
       value={imageUrl}
       onChange={(url) => setImageUrl(url)}
-      onRemove={() => setImageUrl('')}
+      onRemove={() => setImageUrl("")}
       label="Upload Restaurant Logo"
       aspectRatio="square" // "square" | "video" | "banner"
       folder="restaurant-logos"
@@ -74,6 +74,7 @@ function MyComponent() {
 ### Option 2: Update Existing Components
 
 I can help you integrate this into:
+
 - ✅ **Profile Page** - Logo, Banner, Restaurant Picture
 - ✅ **Menu Page** - Menu item images
 - ✅ **Customer Modal** - Profile pictures (if needed)
@@ -89,7 +90,7 @@ I can help you integrate this into:
 🔒 **Secure** - Server-side signed uploads  
 ✅ **Validation** - File type & size checking  
 🎯 **Aspect Ratios** - Square, Video (16:9), Banner (21:9)  
-🗂️ **Organized** - Auto-folders for different image types  
+🗂️ **Organized** - Auto-folders for different image types
 
 ---
 
@@ -111,6 +112,7 @@ cloudinary.com/your-cloud/
 ## 🎁 FREE Tier Limits
 
 Cloudinary's free plan includes:
+
 - ✅ **25 GB Storage**
 - ✅ **25 GB Monthly Bandwidth**
 - ✅ **25,000 Transformations/month**
@@ -193,6 +195,7 @@ Add these to your Vercel project:
 ### Want me to integrate Cloudinary into your pages?
 
 I can update:
+
 1. **Profile Page** - Replace old upload handlers with ImageUpload component
 2. **Menu Page** - Add Cloudinary upload for menu items
 3. **Customer Modal** - Add profile picture uploads (optional)
@@ -216,7 +219,7 @@ Just let me know which pages you want updated!
 ✅ **Auto Optimization** - Images auto-optimized for web  
 ✅ **Responsive Images** - Auto-resize for different devices  
 ✅ **Backup & Security** - Professional hosting  
-✅ **Image Transformations** - Resize, crop, filter on-the-fly  
+✅ **Image Transformations** - Resize, crop, filter on-the-fly
 
 ---
 
@@ -241,6 +244,7 @@ A: Just ask! I'm here to help integrate this anywhere you need.
 Your admin panel now has professional-grade image management powered by Cloudinary!
 
 **What would you like me to do next?**
+
 - 🔧 Integrate ImageUpload into Profile page?
 - 📸 Add to Menu Management page?
 - 🎨 Customize upload UI?

@@ -11,6 +11,7 @@ This project uses Cloudinary for image management. Follow these steps to configu
 ## 2. Get Your Credentials
 
 From your Cloudinary Dashboard, you'll find:
+
 - **Cloud Name**: Your unique cloud name
 - **API Key**: Your API key
 - **API Secret**: Your API secret (click "reveal" to see it)
@@ -46,22 +47,23 @@ Replace `your_cloud_name`, `your_api_key`, and `your_api_secret` with your actua
 The project includes an `ImageUpload` component that handles all Cloudinary uploads:
 
 ```tsx
-import ImageUpload from '@/components/ImageUpload';
+import ImageUpload from "@/components/ImageUpload";
 
 // In your component
 <ImageUpload
   value={imageUrl}
   onChange={(url) => setImageUrl(url)}
-  onRemove={() => setImageUrl('')}
+  onRemove={() => setImageUrl("")}
   label="Upload Restaurant Logo"
   aspectRatio="square" // or "video" or "banner"
   folder="restaurant-logos"
-/>
+/>;
 ```
 
 ## 5. Image Organization
 
 Images are organized in folders:
+
 - `restaurant-logos/` - Restaurant logos
 - `restaurant-banners/` - Header banners
 - `restaurant-pictures/` - Main restaurant images
@@ -81,6 +83,7 @@ Images are organized in folders:
 ## 7. Free Tier Limits
 
 Cloudinary free tier includes:
+
 - 25 GB storage
 - 25 GB monthly bandwidth
 - 25,000 transformations/month
@@ -90,11 +93,13 @@ This is more than enough for development and small-scale production use.
 ## Troubleshooting
 
 **Issue: Upload fails**
+
 - Check that all environment variables are set correctly
 - Verify your API credentials in Cloudinary dashboard
 - Check browser console for detailed error messages
 
 **Issue: Images not loading**
+
 - Verify the image URL is correct
 - Check if Cloudinary account is active
 - Ensure browser can access Cloudinary CDN

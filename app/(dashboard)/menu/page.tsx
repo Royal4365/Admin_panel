@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Edit, Trash2, Check, X, Upload, Leaf } from "lucide-react";
+import { Plus, Edit, Trash2, Check, X, Leaf, ImageIcon } from "lucide-react";
 import { MenuItem, MenuType } from "@/lib/types";
+import ImageUpload from "@/components/ImageUpload";
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -133,16 +134,6 @@ export default function MenuPage() {
     });
     setShowAddForm(false);
     setEditingId(null);
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // In production, upload to cloud storage and get URL
-      // For now, create a local object URL for preview
-      const imageUrl = URL.createObjectURL(file);
-      setFormData({ ...formData, image_url: imageUrl });
-    }
   };
 
   const categories = [
@@ -370,33 +361,20 @@ export default function MenuPage() {
                   </select>
                 </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Image Upload
+                    Menu Item Image
                   </label>
-                  <div className="flex items-center gap-2">
-                    <label className="flex-1 flex items-center justify-center px-3 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-400">
-                      <Upload className="w-5 h-5 mr-2 text-gray-400" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {formData.image_url ? "Change Image" : "Upload Image"}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                  {formData.image_url && (
-                    <div className="mt-2">
-                      <img
-                        src={formData.image_url}
-                        alt="Preview"
-                        className="w-20 h-20 object-cover rounded-lg border border-gray-300"
-                      />
-                    </div>
-                  )}
+                  <ImageUpload
+                    value={formData.image_url}
+                    onChange={(url) =>
+                      setFormData({ ...formData, image_url: url })
+                    }
+                    onRemove={() => setFormData({ ...formData, image_url: "" })}
+                    label="Upload Menu Item Photo"
+                    aspectRatio="square"
+                    folder="menu-items"
+                  />
                 </div>
               </div>
 
@@ -472,8 +450,8 @@ export default function MenuPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <Upload className="w-12 h-12" />
+                  <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-400">
+                    <ImageIcon className="w-12 h-12" />
                   </div>
                 )}
 

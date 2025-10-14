@@ -9,11 +9,11 @@ import {
   Clock,
   Edit2,
   Save,
-  Upload,
   X,
   Truck,
   MapPinned,
 } from "lucide-react";
+import ImageUpload from "@/components/ImageUpload";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -43,58 +43,6 @@ export default function ProfilePage() {
     // In a real app, this would save to database via API
     setIsEditing(false);
     alert("Restaurant profile updated successfully!");
-  };
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setFormData({ ...formData, logo_url: imageUrl });
-    }
-  };
-
-  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setFormData({ ...formData, banner_url: imageUrl });
-    }
-  };
-
-  const handleRestaurantPictureUpload = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setFormData({ ...formData, restaurant_picture_url: imageUrl });
-    }
-  };
-
-  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      const newThumbnails = Array.from(files).map((file) =>
-        URL.createObjectURL(file)
-      );
-      setThumbnails([...thumbnails, ...newThumbnails].slice(0, 6)); // Max 6 thumbnails
-    }
-  };
-
-  const removeThumbnail = (index: number) => {
-    setThumbnails(thumbnails.filter((_, i) => i !== index));
-  };
-
-  const removeLogo = () => {
-    setFormData({ ...formData, logo_url: "" });
-  };
-
-  const removeBanner = () => {
-    setFormData({ ...formData, banner_url: "" });
-  };
-
-  const removeRestaurantPicture = () => {
-    setFormData({ ...formData, restaurant_picture_url: "" });
   };
 
   return (
@@ -127,99 +75,48 @@ export default function ProfilePage() {
       </div>
 
       {/* Banner / Header Image */}
-      <div className="relative h-64 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg overflow-hidden group">
-        {formData.banner_url ? (
-          <>
-            <img
-              src={formData.banner_url}
-              alt="Restaurant Banner"
-              className="w-full h-full object-cover"
-            />
-            {isEditing && (
-              <button
-                onClick={removeBanner}
-                className="absolute top-4 right-4 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Remove Banner"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-center text-white">
-              <Store className="w-16 h-16 mx-auto mb-2 opacity-80" />
-              <p className="text-lg opacity-90">Restaurant Banner</p>
-              {isEditing && (
-                <p className="text-sm opacity-75 mt-2">Click below to upload</p>
-              )}
-            </div>
-          </div>
-        )}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+        <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
+          Restaurant Banner
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Header banner image for your restaurant profile (recommended:
+          1920x600px)
+        </p>
+        <ImageUpload
+          value={formData.banner_url}
+          onChange={(url) => setFormData({ ...formData, banner_url: url })}
+          onRemove={() => setFormData({ ...formData, banner_url: "" })}
+          label="Upload Banner Image"
+          aspectRatio="banner"
+          folder="restaurant-banners"
+          disabled={!isEditing}
+        />
+      </div>
 
-        {isEditing && (
-          <label className="absolute bottom-4 right-4 cursor-pointer">
-            <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Upload className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {formData.banner_url ? "Change Banner" : "Upload Banner"}
-              </span>
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleBannerUpload}
-              className="hidden"
-            />
-          </label>
-        )}
-
-        {/* Logo */}
-        <div className="absolute -bottom-16 left-8">
-          <div className="relative group">
-            <div className="w-32 h-32 rounded-full bg-white dark:bg-gray-800 border-4 border-white dark:border-gray-900 shadow-lg overflow-hidden">
-              {formData.logo_url ? (
-                <img
-                  src={formData.logo_url}
-                  alt="Restaurant Logo"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                  <Store className="w-16 h-16 text-white" />
-                </div>
-              )}
-            </div>
-
-            {isEditing && formData.logo_url && (
-              <button
-                onClick={removeLogo}
-                className="absolute top-0 right-0 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Remove Logo"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-
-            {isEditing && (
-              <label className="absolute bottom-0 right-0 cursor-pointer">
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors">
-                  <Upload className="w-5 h-5 text-white" />
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="hidden"
-                />
-              </label>
-            )}
-          </div>
+      {/* Logo */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+        <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
+          Restaurant Logo
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Your restaurant logo (recommended: square, 500x500px)
+        </p>
+        <div className="max-w-xs">
+          <ImageUpload
+            value={formData.logo_url}
+            onChange={(url) => setFormData({ ...formData, logo_url: url })}
+            onRemove={() => setFormData({ ...formData, logo_url: "" })}
+            label="Upload Logo"
+            aspectRatio="square"
+            folder="restaurant-logos"
+            disabled={!isEditing}
+          />
         </div>
       </div>
 
       {/* Restaurant Name & Tagline */}
-      <div className="pt-20 px-8">
+      <div className="pt-8 px-8">
         {isEditing ? (
           <div className="space-y-3">
             <input
@@ -262,68 +159,20 @@ export default function ProfilePage() {
           800x600px)
         </p>
 
-        <div className="relative max-w-2xl">
-          {formData.restaurant_picture_url ? (
-            <div className="relative aspect-video bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden group">
-              <img
-                src={formData.restaurant_picture_url}
-                alt="Restaurant Main Picture"
-                className="w-full h-full object-cover"
-              />
-              {isEditing && (
-                <button
-                  onClick={removeRestaurantPicture}
-                  className="absolute top-4 right-4 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Remove Restaurant Picture"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
-              {isEditing && (
-                <label className="absolute bottom-4 right-4 cursor-pointer">
-                  <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                    <Upload className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Change Picture
-                    </span>
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleRestaurantPictureUpload}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
-          ) : (
-            <div className="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg flex flex-col items-center justify-center">
-              <Store className="w-16 h-16 text-gray-400 dark:text-gray-500 mb-3" />
-              <p className="text-gray-500 dark:text-gray-400 text-lg font-medium mb-2">
-                No Restaurant Picture
-              </p>
-              {isEditing ? (
-                <label className="cursor-pointer">
-                  <div className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                    <Upload className="w-5 h-5" />
-                    <span className="text-sm font-medium">
-                      Upload Restaurant Picture
-                    </span>
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleRestaurantPictureUpload}
-                    className="hidden"
-                  />
-                </label>
-              ) : (
-                <p className="text-sm text-gray-400 dark:text-gray-500">
-                  Click &quot;Edit Profile&quot; to upload
-                </p>
-              )}
-            </div>
-          )}
+        <div className="max-w-2xl">
+          <ImageUpload
+            value={formData.restaurant_picture_url}
+            onChange={(url) =>
+              setFormData({ ...formData, restaurant_picture_url: url })
+            }
+            onRemove={() =>
+              setFormData({ ...formData, restaurant_picture_url: "" })
+            }
+            label="Upload Restaurant Picture"
+            aspectRatio="video"
+            folder="restaurant-pictures"
+            disabled={!isEditing}
+          />
         </div>
 
         <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -630,106 +479,40 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Restaurant Thumbnail Images Gallery */}
+      {/* Restaurant Photo Gallery */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-800 dark:text-white">
-            Restaurant Photo Gallery
-          </h3>
-          {isEditing && (
-            <label className="cursor-pointer">
-              <div className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                <Upload className="w-4 h-4" />
-                <span className="text-sm">Add Photos</span>
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleThumbnailUpload}
-                className="hidden"
-              />
-            </label>
-          )}
+        <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
+          Restaurant Photo Gallery
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Add up to 6 photos of your restaurant (interior, exterior, ambiance)
+        </p>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {[0, 1, 2, 3, 4, 5].map((index) => (
+            <ImageUpload
+              key={index}
+              value={thumbnails[index] || ""}
+              onChange={(url) => {
+                const newThumbnails = [...thumbnails];
+                newThumbnails[index] = url;
+                setThumbnails(newThumbnails.filter(Boolean));
+              }}
+              onRemove={() => {
+                const newThumbnails = thumbnails.filter((_, i) => i !== index);
+                setThumbnails(newThumbnails);
+              }}
+              label={`Photo ${index + 1}`}
+              aspectRatio="square"
+              folder="restaurant-gallery"
+              disabled={!isEditing}
+            />
+          ))}
         </div>
 
-        {thumbnails.length === 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg flex flex-col items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              >
-                <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  No image
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {thumbnails.map((thumbnail, index) => (
-              <div
-                key={index}
-                className="relative aspect-square rounded-lg overflow-hidden group"
-              >
-                <img
-                  src={thumbnail}
-                  alt={`Restaurant ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                {isEditing && (
-                  <button
-                    onClick={() => removeThumbnail(index)}
-                    className="absolute top-2 right-2 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Remove Photo"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity"></div>
-              </div>
-            ))}
-
-            {/* Add more placeholder if less than 6 images */}
-            {thumbnails.length < 6 && isEditing && (
-              <label className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg flex flex-col items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors cursor-pointer border-2 border-dashed border-gray-400 dark:border-gray-500">
-                <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Add more
-                </p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleThumbnailUpload}
-                  className="hidden"
-                />
-              </label>
-            )}
-          </div>
-        )}
-
-        {isEditing && thumbnails.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 text-center">
-            Click &quot;Add Photos&quot; to upload restaurant images (max 6
-            photos)
-          </p>
-        )}
-
-        {!isEditing && thumbnails.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 text-center">
-            No photos uploaded yet. Click &quot;Edit Profile&quot; to add
-            images.
-          </p>
-        )}
-
-        {thumbnails.length > 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
-            {thumbnails.length} of 6 photos uploaded
-          </p>
-        )}
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
+          {thumbnails.length} of 6 photos uploaded
+        </p>
       </div>
     </div>
   );

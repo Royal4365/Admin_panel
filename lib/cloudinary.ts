@@ -1,4 +1,4 @@
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary } from "cloudinary";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -15,13 +15,13 @@ export async function getCloudinarySignature() {
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (!apiSecret) {
-    throw new Error('CLOUDINARY_API_SECRET is not set');
+    throw new Error("CLOUDINARY_API_SECRET is not set");
   }
 
   const signature = cloudinary.utils.api_sign_request(
     {
       timestamp,
-      folder: 'restaurant-admin',
+      folder: "restaurant-admin",
     },
     apiSecret
   );

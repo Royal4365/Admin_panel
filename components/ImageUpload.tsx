@@ -102,7 +102,9 @@ export default function ImageUpload({
     <div className="space-y-2">
       {value ? (
         <div className="relative group">
-          <div className={`relative ${getAspectClass()} w-full rounded-lg overflow-hidden border-2 border-gray-300 dark:border-gray-600`}>
+          <div
+            className={`relative ${getAspectClass()} w-full rounded-lg overflow-hidden border-2 border-gray-300 dark:border-gray-600`}
+          >
             <img
               src={value}
               alt="Upload preview"
