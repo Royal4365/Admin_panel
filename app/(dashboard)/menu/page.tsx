@@ -99,7 +99,8 @@ export default function MenuPage() {
       hasDessert: item.hasDessert || false,
       discount: item.discount?.toString() || "",
       menu_items: item.menu_items || "",
-      image_url: (item as any)["menu-image"] || "",
+      image_url:
+        (item as unknown as Record<string, string>)["menu-image"] || "",
     });
     setShowAddForm(true);
   };

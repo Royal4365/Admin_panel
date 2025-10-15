@@ -30,14 +30,14 @@ export async function GET(request: NextRequest) {
     `;
 
     // Transform data to match frontend expectations
-    const transformedItems = menuItems.map((item: any) => ({
+    const transformedItems = menuItems.map((item: Record<string, unknown>) => ({
       ...item,
-      price: parseFloat(item.price) || 0,
-      rating: item.rating ? parseFloat(item.rating) : null,
+      price: parseFloat(item.price as string) || 0,
+      rating: item.rating ? parseFloat(item.rating as string) : null,
       isAvailable: item.is_available ?? true,
       hasDessert: item.has_dessert ?? false,
       // If type field doesn't exist, default to Veg
-      type: item.type || "Veg",
+      type: (item.type as string) || "Veg",
     }));
 
     return NextResponse.json(transformedItems);
@@ -66,7 +66,6 @@ export async function POST(request: NextRequest) {
       type,
       isAvailable,
       hasDessert,
-      discount,
       menu_items,
       image_url,
       rating,
@@ -78,9 +77,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Convert type to is_veg boolean
-    const is_veg = type === "Veg";
 
     // Use menu_items as content if available, otherwise use name
     const content = menu_items || name;
@@ -193,7 +189,6 @@ export async function PUT(request: NextRequest) {
       type,
       isAvailable,
       hasDessert,
-      discount,
       menu_items,
       image_url,
       rating,

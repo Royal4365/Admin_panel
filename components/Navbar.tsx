@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun, UserPlus, LogOut, User } from "lucide-react";
+import { Moon, Sun, UserPlus, LogOut } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -11,13 +11,11 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [adminName, setAdminName] = useState("");
   const [restaurantName, setRestaurantName] = useState("");
 
   useEffect(() => {
     const session = getAdminSession();
     if (session) {
-      setAdminName(session.name || "Admin");
       setRestaurantName(session.restaurantName || "Restaurant");
     }
   }, []);
