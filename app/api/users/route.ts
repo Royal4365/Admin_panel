@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     // Type assertion to ensure we can use map
     const usersArray = users as Array<Record<string, unknown>>;
-    
+
     // Transform data to match the Customer interface
     const customers = usersArray.map((user) => {
       // Type assertion to avoid any type while still allowing access to properties
@@ -37,7 +37,9 @@ export async function GET(request: NextRequest) {
         email: userRecord.email as string,
         phone: userRecord.phone as string,
         address: userRecord.address as string,
-        status: ((userRecord.status as string) || "Active") as "Active" | "Inactive",
+        status: ((userRecord.status as string) || "Active") as
+          | "Active"
+          | "Inactive",
         created_at: userRecord.created_at as Date,
       };
     });

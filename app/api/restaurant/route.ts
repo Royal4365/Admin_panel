@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     // Type assertion to ensure we can access length property
     const restaurantArray = restaurant as Array<Record<string, unknown>>;
-    
+
     if (restaurantArray.length === 0) {
       return NextResponse.json(
         { error: "Restaurant not found" },
@@ -99,7 +99,7 @@ export async function PUT(request: NextRequest) {
 
     // Type assertion to ensure we can access length property
     const resultArray = result as Array<Record<string, unknown>>;
-    
+
     console.log(
       "✅ Update result:",
       resultArray.length > 0 ? "Success" : "No rows updated"
