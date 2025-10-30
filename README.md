@@ -244,3 +244,6 @@ For issues and questions, please check the Next.js documentation or NeonDB docum
 ---
 
 **Enjoy managing your restaurant! 🍽️**
+// Trigger new deployment
+
+<!-- Trigger new deployment -->
