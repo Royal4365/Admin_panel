@@ -45,7 +45,9 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `;
 
-    return NextResponse.json(result[0], { status: 201 });
+    // Type assertion to ensure we can access the first element
+    const resultArray = result as Array<Record<string, unknown>>;
+    return NextResponse.json(resultArray[0], { status: 201 });
   } catch (error: unknown) {
     console.error("Error creating customer:", error);
 

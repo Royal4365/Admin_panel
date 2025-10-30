@@ -9,7 +9,6 @@ export async function GET(request: NextRequest) {
     const restaurantId = getRestaurantIdFromHeaders(request);
     validateRestaurantId(restaurantId);
 
-    // Fetch all users for now - in a real application, you would filter by restaurant
     const users = await sql`
       SELECT 
         id,
@@ -25,8 +24,11 @@ export async function GET(request: NextRequest) {
       ORDER BY created_at DESC
     `;
 
+    // Type assertion to ensure we can use map
+    const usersArray = users as Array<Record<string, unknown>>;
+    
     // Transform data to match the Customer interface
-    const customers = users.map((user) => {
+    const customers = usersArray.map((user) => {
       // Type assertion to avoid any type while still allowing access to properties
       const userRecord = user as { [key: string]: unknown };
       return {
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
         email: userRecord.email as string,
         phone: userRecord.phone as string,
         address: userRecord.address as string,
-        status: (userRecord.status as string) || "Active",
+        status: ((userRecord.status as string) || "Active") as "Active" | "Inactive",
         created_at: userRecord.created_at as Date,
       };
     });
@@ -79,15 +81,15 @@ export async function POST(request: NextRequest) {
       RETURNING id, email, first_name, last_name, phone, address, status, created_at, name
     `;
 
-    const user = result[0];
+    const user = (result as Array<Record<string, unknown>>)[0];
     const customer: Customer = {
-      id: user.id,
-      name: user.name || `${user.first_name} ${user.last_name}`,
-      email: user.email,
-      phone: user.phone,
-      address: user.address,
-      status: user.status || "Active",
-      created_at: user.created_at,
+      id: user.id as string,
+      name: (user.name || `${user.first_name} ${user.last_name}`) as string,
+      email: user.email as string,
+      phone: user.phone as string,
+      address: user.address as string,
+      status: ((user.status as string) || "Active") as "Active" | "Inactive",
+      created_at: user.created_at as Date,
     };
 
     return NextResponse.json(customer, { status: 201 });

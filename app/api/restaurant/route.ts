@@ -12,14 +12,17 @@ export async function GET(request: NextRequest) {
       SELECT * FROM restaurants WHERE id = ${restaurantId} LIMIT 1
     `;
 
-    if (restaurant.length === 0) {
+    // Type assertion to ensure we can access length property
+    const restaurantArray = restaurant as Array<Record<string, unknown>>;
+    
+    if (restaurantArray.length === 0) {
       return NextResponse.json(
         { error: "Restaurant not found" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(restaurant[0]);
+    return NextResponse.json(restaurantArray[0]);
   } catch (error) {
     console.error("Error fetching restaurant:", error);
     return NextResponse.json(
@@ -94,12 +97,15 @@ export async function PUT(request: NextRequest) {
       RETURNING *
     `;
 
+    // Type assertion to ensure we can access length property
+    const resultArray = result as Array<Record<string, unknown>>;
+    
     console.log(
       "✅ Update result:",
-      result.length > 0 ? "Success" : "No rows updated"
+      resultArray.length > 0 ? "Success" : "No rows updated"
     );
 
-    if (result.length === 0) {
+    if (resultArray.length === 0) {
       console.error("❌ Restaurant not found with ID:", restaurantId);
       return NextResponse.json(
         { error: "Restaurant not found" },
@@ -107,8 +113,8 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    console.log("✅ Restaurant updated successfully:", result[0].name);
-    return NextResponse.json(result[0]);
+    console.log("✅ Restaurant updated successfully:", resultArray[0].name);
+    return NextResponse.json(resultArray[0]);
   } catch (error) {
     console.error("❌ Error updating restaurant:", error);
     console.error("Error details:", {

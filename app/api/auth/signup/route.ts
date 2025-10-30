@@ -4,32 +4,22 @@ import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
-    // Parse JSON body with better error handling
-    let body;
-    try {
-      body = await request.json();
-    } catch (jsonError) {
-      console.error("JSON parsing error:", jsonError);
-      return NextResponse.json(
-        { error: "Invalid JSON in request body" },
-        { status: 400 }
-      );
-    }
-
+    const body = await request.json();
     const { name, email, phone, password, restaurantName } = body;
 
     // Validate required fields
     if (!name || !email || !phone || !password || !restaurantName) {
       return NextResponse.json(
-        { error: "All required fields are required" },
+        { error: "All fields are required" },
         { status: 400 }
       );
     }
 
-    // Validate password length
-    if (password.length < 6) {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
+        { error: "Invalid email format" },
         { status: 400 }
       );
     }
@@ -39,7 +29,10 @@ export async function POST(request: Request) {
       SELECT id FROM admins WHERE email = ${email}
     `;
 
-    if (existingAdmin.length > 0) {
+    // Type assertion to ensure we can access length property
+    const existingAdminArray = existingAdmin as Array<Record<string, unknown>>;
+
+    if (existingAdminArray.length > 0) {
       return NextResponse.json(
         { error: "Email already registered" },
         { status: 400 }
@@ -76,7 +69,8 @@ export async function POST(request: Request) {
       RETURNING id, name
     `;
 
-    const restaurantId = restaurant[0].id;
+    const restaurantId = (restaurant as Array<Record<string, unknown>>)[0]
+      .id as number;
 
     // Create admin account with hashed password and additional fields
     const adminResult = await sql`
@@ -85,15 +79,16 @@ export async function POST(request: Request) {
       RETURNING id, email, restaurant_id
     `;
 
-    const admin = adminResult[0];
+    const admin = (adminResult as Array<Record<string, unknown>>)[0];
 
     return NextResponse.json({
       success: true,
       admin: {
-        id: admin.id,
-        email: admin.email,
-        restaurantId: admin.restaurant_id,
-        restaurantName: restaurant[0].name,
+        id: admin.id as string,
+        email: admin.email as string,
+        restaurantId: admin.restaurant_id as number,
+        restaurantName: (restaurant as Array<Record<string, unknown>>)[0]
+          .name as string,
         name: name,
       },
     });

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { getRestaurantIdFromHeaders, validateRestaurantId } from "@/lib/auth";
 
-// GET - Fetch all menu items for the authenticated restaurant
+// GET - Fetch all menu items
 export async function GET(request: NextRequest) {
   try {
     const restaurantId = getRestaurantIdFromHeaders(request);
@@ -14,12 +14,12 @@ export async function GET(request: NextRequest) {
         restaurant_id,
         name,
         price,
+        category,
         content,
         rating,
         is_available,
         has_dessert,
         menu_items,
-        category,
         type,
         "menu-image" as image_url,
         created_at,
@@ -29,16 +29,21 @@ export async function GET(request: NextRequest) {
       ORDER BY category, name
     `;
 
+    // Type assertion to ensure we can use map
+    const menuItemsArray = menuItems as Array<Record<string, unknown>>;
+
     // Transform data to match frontend expectations
-    const transformedItems = menuItems.map((item: Record<string, unknown>) => ({
-      ...item,
-      price: parseFloat(item.price as string) || 0,
-      rating: item.rating ? parseFloat(item.rating as string) : null,
-      isAvailable: item.is_available ?? true,
-      hasDessert: item.has_dessert ?? false,
-      // If type field doesn't exist, default to Veg
-      type: (item.type as string) || "Veg",
-    }));
+    const transformedItems = menuItemsArray.map(
+      (item: Record<string, unknown>) => ({
+        ...item,
+        price: parseFloat(item.price as string) || 0,
+        rating: item.rating ? parseFloat(item.rating as string) : null,
+        isAvailable: item.is_available ?? true,
+        hasDessert: item.has_dessert ?? false,
+        // If type field doesn't exist, default to Veg
+        type: (item.type as string) || "Veg",
+      })
+    );
 
     return NextResponse.json(transformedItems);
   } catch (error) {
@@ -133,17 +138,20 @@ export async function POST(request: NextRequest) {
         updated_at
     `;
 
-    console.log("✅ Menu item created successfully:", result[0].id);
+    console.log(
+      "✅ Menu item created successfully:",
+      (result as Array<Record<string, unknown>>)[0].id
+    );
 
-    const item = result[0];
+    const item = (result as Array<Record<string, unknown>>)[0];
     // Ensure type is set
     if (!item.type) {
       item.type = "Veg";
     }
     // Ensure price is a number
-    item.price = parseFloat(item.price) || 0;
+    item.price = parseFloat(item.price as string) || 0;
     if (item.rating) {
-      item.rating = parseFloat(item.rating);
+      item.rating = parseFloat(item.rating as string);
     }
 
     return NextResponse.json(item, { status: 201 });
@@ -229,32 +237,28 @@ export async function PUT(request: NextRequest) {
         updated_at
     `;
 
-    console.log(
-      "✅ Menu item updated successfully:",
-      result.length > 0 ? result[0].id : "none"
-    );
-
-    if (result.length === 0) {
+    if ((result as Array<Record<string, unknown>>).length === 0) {
       return NextResponse.json(
         { error: "Menu item not found" },
         { status: 404 }
       );
     }
 
-    const item = result[0];
+    const item = (result as Array<Record<string, unknown>>)[0];
     // Ensure type is set
     if (!item.type) {
       item.type = "Veg";
     }
     // Ensure price is a number
-    item.price = parseFloat(item.price) || 0;
+    item.price = parseFloat(item.price as string) || 0;
     if (item.rating) {
-      item.rating = parseFloat(item.rating);
+      item.rating = parseFloat(item.rating as string);
     }
 
+    console.log("✅ Menu item updated successfully:", item.id);
     return NextResponse.json(item);
   } catch (error) {
-    console.error("Error updating menu item:", error);
+    console.error("❌ Error updating menu item:", error);
     return NextResponse.json(
       { error: "Failed to update menu item" },
       { status: 500 }
@@ -278,14 +282,18 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await sql`
+    const result = await sql`
       DELETE FROM menu_items 
       WHERE id = ${id} AND restaurant_id = ${restaurantId}
     `;
 
+    // Check if any rows were affected
+    // Note: The result of DELETE queries may vary by database driver
+    // We're assuming success if no error was thrown
+    console.log("✅ Menu item deleted successfully:", id);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting menu item:", error);
+    console.error("❌ Error deleting menu item:", error);
     return NextResponse.json(
       { error: "Failed to delete menu item" },
       { status: 500 }

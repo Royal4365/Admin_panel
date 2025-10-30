@@ -1,4 +1,4 @@
-import { neon } from "@neondatabase/serverless";
+import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 
 // Get the database connection string from environment variable
 const getDatabaseUrl = () => {
@@ -17,7 +17,7 @@ const getDatabaseUrl = () => {
 
 // Create a lazy-loaded SQL query function
 // This ensures the connection is only created when actually needed
-let _sql: ReturnType<typeof neon> | null = null;
+let _sql: NeonQueryFunction<false, boolean> | null = null;
 
 export const getSql = () => {
   if (!_sql) {
@@ -27,12 +27,16 @@ export const getSql = () => {
 };
 
 // For backward compatibility, we'll keep the sql export but make it lazy-loaded
-export const sql: ReturnType<typeof neon> = ((
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const sql: NeonQueryFunction<false, any> = ((
   strings: TemplateStringsArray,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ...values: any[]
 ) => {
-  return getSql()(strings, ...values);
-}) as any;
+  const db = getSql();
+  return db(strings, ...values);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}) as NeonQueryFunction<false, any>;
 
 // Database initialization function
 export async function initDatabase() {

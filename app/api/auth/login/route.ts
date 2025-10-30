@@ -41,17 +41,23 @@ export async function POST(request: Request) {
       WHERE a.email = ${email}
     `;
 
-    if (result.length === 0) {
+    // Type assertion to ensure we can access length property
+    const resultArray = result as Array<Record<string, unknown>>;
+
+    if (resultArray.length === 0) {
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }
       );
     }
 
-    const admin = result[0];
+    const admin = resultArray[0];
 
     // Check password using bcrypt
-    const passwordMatch = await bcrypt.compare(password, admin.password);
+    const passwordMatch = await bcrypt.compare(
+      password,
+      admin.password as string
+    );
 
     if (!passwordMatch) {
       return NextResponse.json(
@@ -64,12 +70,12 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       admin: {
-        id: admin.id,
-        name: admin.name,
-        email: admin.email,
-        phone: admin.phone,
-        restaurantId: admin.restaurant_id,
-        restaurantName: admin.restaurant_name,
+        id: admin.id as string,
+        name: admin.name as string,
+        email: admin.email as string,
+        phone: admin.phone as string,
+        restaurantId: admin.restaurant_id as number,
+        restaurantName: admin.restaurant_name as string,
       },
     });
   } catch (error) {
