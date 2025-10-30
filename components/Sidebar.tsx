@@ -8,6 +8,7 @@ import {
   CreditCard,
   UtensilsCrossed,
   Store,
+  ShoppingCart,
 } from "lucide-react";
 
 const menuItems = [
@@ -20,6 +21,11 @@ const menuItems = [
     name: "Customers",
     icon: Users,
     path: "/customers",
+  },
+  {
+    name: "Orders",
+    icon: ShoppingCart,
+    path: "/orders",
   },
   {
     name: "Payments",

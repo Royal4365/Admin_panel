@@ -6,6 +6,7 @@ export interface Customer {
   address?: string;
   status: "Active" | "Inactive";
   created_at: Date;
+  orders?: Order[]; // Add orders array
 }
 
 export interface MenuItem {
@@ -24,11 +25,17 @@ export interface MenuItem {
 }
 
 export interface Order {
-  id: string; // UUID
-  customer_id: string; // UUID
-  total_amount: number;
+  id: number;
+  user_id?: string;
+  total_amount: number | string;
   status: string;
   created_at: Date;
+  quantity: number;
+  weeks: number;
+  special_instructions?: string;
+  updated_at: Date;
+  menu_item_id?: number;
+  restaurant_id?: number;
 }
 
 export interface Payment {

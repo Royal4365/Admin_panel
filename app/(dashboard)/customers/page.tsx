@@ -2,27 +2,38 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Trash2, Mail, Phone, MapPin, Search } from "lucide-react";
-import { Customer, CustomerStatus } from "@/lib/types";
+import { Customer, CustomerStatus, Order } from "@/lib/types";
 import { authenticatedFetch } from "@/lib/client-auth";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<CustomerStatus>("All");
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchCustomers = async () => {
     try {
-      const response = await authenticatedFetch("/api/customers");
+      const response = await authenticatedFetch("/api/users");
       if (response.ok) {
         const data = await response.json();
         setCustomers(data);
       }
     } catch (error) {
       console.error("Error fetching customers:", error);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const response = await authenticatedFetch("/api/orders");
+      if (response.ok) {
+        const data = await response.json();
+        setOrders(data);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
     }
   };
 
@@ -48,7 +59,9 @@ export default function CustomersPage() {
   }, [customers, statusFilter, searchQuery]);
 
   useEffect(() => {
-    fetchCustomers();
+    Promise.all([fetchCustomers(), fetchOrders()]).then(() => {
+      setLoading(false);
+    });
   }, []);
 
   useEffect(() => {
@@ -59,7 +72,7 @@ export default function CustomersPage() {
     if (!confirm("Are you sure you want to delete this customer?")) return;
 
     try {
-      const response = await authenticatedFetch(`/api/customers?id=${id}`, {
+      const response = await authenticatedFetch(`/api/users?id=${id}`, {
         method: "DELETE",
       });
 
@@ -72,6 +85,37 @@ export default function CustomersPage() {
       console.error("Error deleting customer:", error);
       alert("Error deleting customer");
     }
+  };
+
+  // Get orders for a specific customer
+  const getCustomerOrders = (customerId: string) => {
+    return orders.filter((order) => order.user_id === customerId);
+  };
+
+  // Get payment status based on customer orders
+  const getPaymentStatus = (customerId: string) => {
+    const customerOrders = getCustomerOrders(customerId);
+    if (customerOrders.length === 0) {
+      return "No Orders";
+    }
+
+    // Check if any order is pending
+    const hasPendingOrder = customerOrders.some(
+      (order) => order.status === "pending"
+    );
+    if (hasPendingOrder) {
+      return "Pending";
+    }
+
+    // Check if any order is completed
+    const hasCompletedOrder = customerOrders.some(
+      (order) => order.status === "completed"
+    );
+    if (hasCompletedOrder) {
+      return "Paid";
+    }
+
+    return "Unknown";
   };
 
   if (loading) {
@@ -153,7 +197,7 @@ export default function CustomersPage() {
                   Address
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Status
+                  Payment Status
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Actions
@@ -211,12 +255,16 @@ export default function CustomersPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          customer.status === "Active"
+                          getPaymentStatus(customer.id) === "Paid"
                             ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
+                            : getPaymentStatus(customer.id) === "Pending"
+                            ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300"
+                            : getPaymentStatus(customer.id) === "No Orders"
+                            ? "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
                             : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300"
                         }`}
                       >
-                        {customer.status}
+                        {getPaymentStatus(customer.id)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -248,7 +296,7 @@ export default function CustomersPage() {
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-              Active Customers
+              Active Payment Status
             </h3>
             <p className="text-3xl font-bold text-green-600 dark:text-green-400">
               {customers.filter((c) => c.status === "Active").length}
@@ -256,7 +304,7 @@ export default function CustomersPage() {
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-              Inactive Customers
+              Inactive Payment Status
             </h3>
             <p className="text-3xl font-bold text-red-600 dark:text-red-400">
               {customers.filter((c) => c.status === "Inactive").length}

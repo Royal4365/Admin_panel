@@ -1,44 +1,92 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, ShoppingCart, DollarSign } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import { FilterPeriod } from "@/lib/types";
+import { authenticatedFetch } from "@/lib/client-auth";
 
 export default function DashboardPage() {
   const [filter, setFilter] = useState<FilterPeriod>("Daily");
+  const [stats, setStats] = useState({
+    activeCustomers: 0,
+    todaysOrders: 0,
+    todaysRevenue: 0,
+    weeklyOrders: 0,
+    weeklyRevenue: 0,
+    monthlyOrders: 0,
+    monthlyRevenue: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
-  // Get stats based on filter (dummy data)
-  const getStats = () => {
+  // Fetch dashboard statistics
+  const fetchStats = async () => {
+    try {
+      const response = await authenticatedFetch("/api/dashboard");
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  // Get stats based on filter (real data)
+  const getFilteredStats = () => {
     switch (filter) {
       case "Daily":
         return {
-          activeCustomers: 248,
-          todaysOrders: 35,
-          todaysRevenue: 1245.5,
+          activeCustomers: stats.activeCustomers,
+          orders: stats.todaysOrders,
+          revenue: stats.todaysRevenue,
         };
       case "Weekly":
         return {
-          activeCustomers: 856,
-          todaysOrders: 198,
-          todaysRevenue: 8750.25,
+          activeCustomers: stats.activeCustomers,
+          orders: stats.weeklyOrders,
+          revenue: stats.weeklyRevenue,
         };
       case "Monthly":
         return {
-          activeCustomers: 2450,
-          todaysOrders: 872,
-          todaysRevenue: 35890.75,
+          activeCustomers: stats.activeCustomers,
+          orders: stats.monthlyOrders,
+          revenue: stats.monthlyRevenue,
         };
       default:
         return {
-          activeCustomers: 248,
-          todaysOrders: 35,
-          todaysRevenue: 1245.5,
+          activeCustomers: stats.activeCustomers,
+          orders: stats.todaysOrders,
+          revenue: stats.todaysRevenue,
         };
     }
   };
 
-  const stats = getStats();
+  const filteredStats = getFilteredStats();
+
+  // Format currency
+  const formatCurrency = (amount: number): string => {
+    return `₹${amount.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-xl text-gray-600 dark:text-gray-400">
+          Loading dashboard...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -85,21 +133,21 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
           title="Active Customers"
-          value={stats.activeCustomers}
+          value={filteredStats.activeCustomers}
           icon={Users}
           trend="+12% from last period"
           trendUp={true}
         />
         <StatCard
           title={filter === "Daily" ? "Today's Orders" : `${filter} Orders`}
-          value={stats.todaysOrders}
+          value={filteredStats.orders}
           icon={ShoppingCart}
           trend="+8% from last period"
           trendUp={true}
         />
         <StatCard
           title={filter === "Daily" ? "Today's Revenue" : `${filter} Revenue`}
-          value={`₹${stats.todaysRevenue.toLocaleString("en-IN")}`}
+          value={formatCurrency(filteredStats.revenue)}
           icon={DollarSign}
           trend="+15% from last period"
           trendUp={true}
@@ -111,55 +159,8 @@ export default function DashboardPage() {
         <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
           Recent Activity
         </h2>
-        <div className="space-y-4">
-          {[
-            {
-              action: "New order placed",
-              customer: "John Doe",
-              amount: "₹45.99",
-              time: "5 min ago",
-            },
-            {
-              action: "Payment received",
-              customer: "Jane Smith",
-              amount: "₹78.50",
-              time: "12 min ago",
-            },
-            {
-              action: "New customer registered",
-              customer: "Bob Johnson",
-              amount: "-",
-              time: "25 min ago",
-            },
-            {
-              action: "Order completed",
-              customer: "Alice Brown",
-              amount: "₹32.00",
-              time: "1 hour ago",
-            },
-          ].map((activity, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between py-3 border-b border-slate-200 dark:border-slate-700 last:border-0"
-            >
-              <div>
-                <p className="font-medium text-slate-900 dark:text-slate-100">
-                  {activity.action}
-                </p>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  {activity.customer}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-slate-900 dark:text-slate-100">
-                  {activity.amount}
-                </p>
-                <p className="text-sm text-slate-500 dark:text-slate-500">
-                  {activity.time}
-                </p>
-              </div>
-            </div>
-          ))}
+        <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+          <p>Recent activity will be displayed here</p>
         </div>
       </div>
 
@@ -169,22 +170,8 @@ export default function DashboardPage() {
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
             Popular Menu Items
           </h3>
-          <div className="space-y-3">
-            {[
-              { name: "Margherita Pizza", orders: 45 },
-              { name: "Caesar Salad", orders: 38 },
-              { name: "Grilled Salmon", orders: 32 },
-              { name: "Pasta Carbonara", orders: 28 },
-            ].map((item, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <span className="text-slate-700 dark:text-slate-300">
-                  {item.name}
-                </span>
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
-                  {item.orders} orders
-                </span>
-              </div>
-            ))}
+          <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+            <p>Popular menu items will be displayed here</p>
           </div>
         </div>
 
@@ -192,55 +179,8 @@ export default function DashboardPage() {
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
             Performance
           </h3>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-slate-700 dark:text-slate-300">
-                  Customer Satisfaction
-                </span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100">
-                  94%
-                </span>
-              </div>
-              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                <div
-                  className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                  style={{ width: "94%" }}
-                ></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-slate-700 dark:text-slate-300">
-                  Order Completion
-                </span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100">
-                  89%
-                </span>
-              </div>
-              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                  style={{ width: "89%" }}
-                ></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-slate-700 dark:text-slate-300">
-                  Delivery Speed
-                </span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100">
-                  87%
-                </span>
-              </div>
-              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                <div
-                  className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
-                  style={{ width: "87%" }}
-                ></div>
-              </div>
-            </div>
+          <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+            <p>Performance metrics will be displayed here</p>
           </div>
         </div>
       </div>
