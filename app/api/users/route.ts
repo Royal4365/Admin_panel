@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { getRestaurantIdFromHeaders, validateRestaurantId } from "@/lib/auth";
+import { Customer } from "@/lib/types";
 
 // GET - Fetch all users (customers)
 export async function GET(request: NextRequest) {
@@ -25,15 +26,19 @@ export async function GET(request: NextRequest) {
     `;
 
     // Transform data to match the Customer interface
-    const customers = users.map((user: any) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      address: user.address,
-      status: user.status || "Active",
-      created_at: user.created_at,
-    }));
+    const customers = users.map((user) => {
+      // Type assertion to avoid any type while still allowing access to properties
+      const userRecord = user as { [key: string]: unknown };
+      return {
+        id: userRecord.id as string,
+        name: userRecord.name as string,
+        email: userRecord.email as string,
+        phone: userRecord.phone as string,
+        address: userRecord.address as string,
+        status: (userRecord.status as string) || "Active",
+        created_at: userRecord.created_at as Date,
+      };
+    });
 
     return NextResponse.json(customers);
   } catch (error) {
@@ -75,7 +80,7 @@ export async function POST(request: NextRequest) {
     `;
 
     const user = result[0];
-    const customer = {
+    const customer: Customer = {
       id: user.id,
       name: user.name || `${user.first_name} ${user.last_name}`,
       email: user.email,

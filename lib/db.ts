@@ -3,18 +3,44 @@ import { neon } from "@neondatabase/serverless";
 // Get the database connection string from environment variable
 const getDatabaseUrl = () => {
   const url = process.env.DATABASE_URL;
-  // Return placeholder if DATABASE_URL is not set (for builds without DB)
-  return url || "postgresql://placeholder@localhost/placeholder";
+
+  // For build time, we need to ensure we have a valid URL format
+  // Vercel might not have the environment variable set during build
+  if (!url) {
+    // Return a properly formatted placeholder URL for build compatibility
+    // This won't be used for actual database operations during build
+    return "postgresql://placeholder:placeholder@localhost:5432/placeholder?sslmode=disable";
+  }
+
+  return url;
 };
 
-// Create a SQL query function
-export const sql = neon(getDatabaseUrl());
+// Create a lazy-loaded SQL query function
+// This ensures the connection is only created when actually needed
+let _sql: ReturnType<typeof neon> | null = null;
+
+export const getSql = () => {
+  if (!_sql) {
+    _sql = neon(getDatabaseUrl());
+  }
+  return _sql;
+};
+
+// For backward compatibility, we'll keep the sql export but make it lazy-loaded
+export const sql: ReturnType<typeof neon> = ((
+  strings: TemplateStringsArray,
+  ...values: any[]
+) => {
+  return getSql()(strings, ...values);
+}) as any;
 
 // Database initialization function
 export async function initDatabase() {
   try {
+    const db = getSql();
+
     // Create restaurants table
-    await sql`
+    await db`
       CREATE TABLE IF NOT EXISTS restaurants (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -41,7 +67,7 @@ export async function initDatabase() {
     `;
 
     // Create admins table
-    await sql`
+    await db`
       CREATE TABLE IF NOT EXISTS admins (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -54,7 +80,7 @@ export async function initDatabase() {
     `;
 
     // Create customers table (restaurant-specific)
-    await sql`
+    await db`
       CREATE TABLE IF NOT EXISTS customers (
         id SERIAL PRIMARY KEY,
         restaurant_id INTEGER REFERENCES restaurants(id) ON DELETE CASCADE,
@@ -68,7 +94,7 @@ export async function initDatabase() {
     `;
 
     // Create menu_items table (restaurant-specific)
-    await sql`
+    await db`
       CREATE TABLE IF NOT EXISTS menu_items (
         id SERIAL PRIMARY KEY,
         restaurant_id INTEGER REFERENCES restaurants(id) ON DELETE CASCADE,
@@ -89,7 +115,7 @@ export async function initDatabase() {
     `;
 
     // Create orders table (restaurant-specific)
-    await sql`
+    await db`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         restaurant_id INTEGER REFERENCES restaurants(id) ON DELETE CASCADE,
@@ -101,7 +127,7 @@ export async function initDatabase() {
     `;
 
     // Create payments table (restaurant-specific)
-    await sql`
+    await db`
       CREATE TABLE IF NOT EXISTS payments (
         id SERIAL PRIMARY KEY,
         restaurant_id INTEGER REFERENCES restaurants(id) ON DELETE CASCADE,

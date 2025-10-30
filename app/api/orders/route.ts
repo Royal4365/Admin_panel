@@ -13,8 +13,12 @@ export async function GET(request: NextRequest) {
     `;
 
     // Ensure total_amount is a number
-    const formattedOrders = orders.map((order: any) => {
-      let totalAmount = order.total_amount;
+    const formattedOrders = orders.map((order) => {
+      // Type assertion to avoid any type while still allowing access to properties
+      const orderRecord = order as { [key: string]: unknown };
+      let totalAmount: number | string = orderRecord.total_amount as
+        | number
+        | string;
       if (typeof totalAmount === "string") {
         totalAmount = parseFloat(totalAmount);
       }
